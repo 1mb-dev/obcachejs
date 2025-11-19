@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var obcache = require('../index');
 var debug = require('../debug');
@@ -103,6 +103,35 @@ var cache = debug.register(new obcache.Create({ queueEnabled: true, reset: { int
 
       });
 
+    });
+
+    describe('#promise', function() {
+      it('should return a promise when no callback provided', async function() {
+        var result = await wrapped(5);
+        assert.equal(5, (JSON.parse(result)).p);
+      });
+
+      it('should cache results with promise API', async function() {
+        var result1 = await wrapped(20);
+        var result2 = await wrapped(20);
+        assert.equal((JSON.parse(result1)).p, (JSON.parse(result2)).p);
+      });
+
+      it('should reject promise on error', async function() {
+        var errorCache = new obcache.Create({ queueEnabled: false });
+        var errorFn = errorCache.wrap(function(id, cb) {
+          process.nextTick(function() {
+            cb(new Error('test error'));
+          });
+        });
+
+        try {
+          await errorFn(1);
+          assert.fail('should have thrown');
+        } catch (err) {
+          assert.equal(err.message, 'test error');
+        }
+      });
     });
 
   });

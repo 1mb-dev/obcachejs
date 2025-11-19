@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var obcache = require('../index');
 var debug = require('../debug');
@@ -27,7 +27,7 @@ var cache = debug.register(new obcache.Create({ queueEnabled: false, reset: { in
 
   // this should find it in cache
   process.nextTick(function() { 
-    wrapped(5,console.log)
+    wrapped(5,console.log);
     cache.invalidate(wrapped,10);
     debug.log();
   });

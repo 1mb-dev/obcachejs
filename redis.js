@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var redis = require('redis');
 var debug = require('debug')('obcachejs');

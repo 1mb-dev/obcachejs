@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
  * For debugging caches in an express APP
@@ -36,7 +36,7 @@ var debug = {
     return cache;
   },
 
-  view: function(req,res,next) {
+  view: function(req, res, _next) {
     var data = [];
     var cnames = Object.keys(caches);
     cnames.forEach(function(cname) {

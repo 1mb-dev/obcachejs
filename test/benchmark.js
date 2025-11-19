@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /* 
  * This test only demonstrates the overhead of the cache.
@@ -26,7 +26,7 @@ var suite = new Benchmark.Suite();
     wrapped(5,function() {});
   })
   .add('redis', function() {
-    wrapped(5,function() {});
+    rwrapped(5,function() {});
   })
   .on('cycle', function(event) {
     console.log(String(event.target));

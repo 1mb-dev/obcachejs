@@ -1,7 +1,6 @@
-"use strict";
+'use strict';
 /*jslint undef: true */
 
-var lru = require('./lru');
 var sigmund = require('sigmund');
 var log = require('debug')('obcachejs');
 var util = require('util');
@@ -94,7 +93,7 @@ var cache = {
         var lastArg = args[args.length - 1];
         var callback;
         var usePromise = typeof lastArg !== 'function';
-        var key, data, keyArgs;
+        var key, keyArgs;
 
         if (usePromise) {
           // Promise mode - return a Promise
@@ -131,7 +130,7 @@ var cache = {
         key = keygen(fname, keyArgs);
 
         log('fetching from cache ' + key);
-        data = store.get(key, onget);
+        store.get(key, onget);
 
         function onget(err, data) {
           var v;

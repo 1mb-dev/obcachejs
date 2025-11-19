@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var LRUCache = require('lru-cache').LRUCache;
 

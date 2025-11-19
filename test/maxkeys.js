@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var obcache = require('../index');
 var debug = require('../debug');
