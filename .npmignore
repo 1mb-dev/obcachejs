@@ -1,4 +1,5 @@
 test/
+examples/
 .git/
 .github/
 .gitignore

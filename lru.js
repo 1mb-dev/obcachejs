@@ -60,7 +60,7 @@ var lru = {
       },
 
       keycount: function() {
-        return cache.size;
+        return this.size();
       },
 
       values: function() {

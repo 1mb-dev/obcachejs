@@ -49,8 +49,8 @@ declare module 'obcachejs' {
   export class CacheError extends Error {}
 
   export const debug: {
-    register(cache: Cache, name: string): void;
+    register(cache: Cache, name: string): Cache;
     view(req: any, res: any, next: () => void): void;
-    log(callback: (err: any, data: any) => void): void;
+    log(callback?: (data: any) => void): void;
   };
 }

@@ -16,7 +16,7 @@ var redisStore = {
     var port = options.redis.port || 6379;
 
     if (!options || isNaN(Number(options.id))) {
-      throw new Error('Specify an integer cacheid for persistence across reboots, not ' + options.id);
+      throw new Error('redis requires numeric id option, got: ' + options.id);
     }
 
     var clientOptions = {};
@@ -46,7 +46,7 @@ var redisStore = {
       connected = false;
     });
 
-    // Connect to Redis (v4 requires explicit connect)
+    // Connect to Redis
     client.connect().then(function() {
       debug('redis connected');
       connected = true;
