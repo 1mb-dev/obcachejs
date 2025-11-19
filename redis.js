@@ -7,93 +7,119 @@ var redisStore = {
 
   init: function(options) {
 
-    var client ;
+    var client;
     var prefix;
     var keylen = 0;
     var maxAge = (options && options.maxAge) || 60000;
-    var port = options.redis.port;
-    var host = options.redis.host;
-    var ropts = {};
+    var url = options.redis.url;
+    var host = options.redis.host || 'localhost';
+    var port = options.redis.port || 6379;
 
-    function setKeylen(err,size) {
-      keylen = size;
-    }
-
-
-    if (!options || isNaN(Number(options.id)) ) {
+    if (!options || isNaN(Number(options.id))) {
       throw new Error('Specify an integer cacheid for persistence across reboots, not ' + options.id);
     }
 
-    if (options.redis.twemproxy) {
-      ropts.no_ready_check = true;
-      debug('twemproxy compat mode. stats on keys will not be available.');
+    var clientOptions = {};
 
+    if (url) {
+      clientOptions.url = url;
+    } else {
+      clientOptions.socket = { host: host, port: port };
     }
-    client = redis.createClient(port, host, ropts);
+
+    if (options.redis.database !== undefined) {
+      clientOptions.database = options.redis.database;
+    } else if (!options.redis.twemproxy) {
+      clientOptions.database = options.id;
+    }
+
+    client = redis.createClient(clientOptions);
 
     client.on('error', function(err) {
       debug('redis error ' + err);
     });
 
-    if (!options.redis.twemproxy) {
-      client.select(options.id);
-      client.dbsize(setKeylen);
-    } 
+    // Connect to Redis (v4 requires explicit connect)
+    client.connect().then(function() {
+      debug('redis connected');
+      if (!options.redis.twemproxy) {
+        client.dbSize().then(function(size) {
+          keylen = size;
+        }).catch(function(err) {
+          debug('dbsize error ' + err);
+        });
+      }
+    }).catch(function(err) {
+      debug('redis connect error ' + err);
+    });
 
-    prefix = 'obc:' + options.id + ':' ;
+    if (options.redis.twemproxy) {
+      debug('twemproxy compat mode. stats on keys will not be available.');
+    }
+
+    prefix = 'obc:' + options.id + ':';
 
     var rcache = {
-      maxAge : maxAge,
-      client : client,
-      get : function(key, cb) {
+      maxAge: maxAge,
+      client: client,
+
+      get: function(key, cb) {
         key = prefix + key;
-        var ttl = this.maxAge/1000;
-        client.get(key, function(err, data){
+        client.get(key).then(function(data) {
           var result;
-          if (err || !data) {
-            return cb(err);
+          if (!data) {
+            return cb(null);
           }
-          data = data.toString();
           try {
-            result = JSON.parse(data); 
+            result = JSON.parse(data);
           } catch (e) {
             return cb(e);
           }
-          // don't reset the ttl
-          //client.expire(key,ttl);
           return cb(null, result);
+        }).catch(function(err) {
+          cb(err);
         });
       },
 
-      set : function(key, val, cb){
+      set: function(key, val, cb) {
         key = prefix + key;
         try {
-          var ttl = this.maxAge/1000;
+          var ttl = Math.floor(this.maxAge / 1000);
           var obj = JSON.stringify(val);
 
           debug('setting key ' + key + ' in redis with ttl ' + ttl);
-          client.setex(key, ttl, obj, function(err){
+          client.setEx(key, ttl, obj).then(function() {
             if (cb) {
-              cb.apply(this, arguments);
+              cb(null, val);
+            }
+          }).catch(function(err) {
+            if (cb) {
+              cb(err);
             }
           });
         } catch (err) {
-          if (cb) { 
+          if (cb) {
             cb(err);
           }
-        } 
+        }
       },
 
-      expire: function(key,cb) {
+      expire: function(key, cb) {
         key = prefix + key;
-        client.expire(key,0,cb || function() {});
+        client.expire(key, 0).then(function() {
+          cb && cb(null);
+        }).catch(function(err) {
+          cb && cb(err);
+        });
       },
 
       reset: function() {
         if (options.redis.twemproxy) {
           throw new Error('Reset is not possible in twemproxy compat mode');
         }
-        client.flushdb();
+        client.flushDb().catch(function(err) {
+          debug('flushdb error ' + err);
+        });
       },
 
       size: function() {
@@ -101,12 +127,14 @@ var redisStore = {
       },
 
       keycount: function() {
-        // this is a hack to make this function sync, 
-        // second call will return a truer keycount
         if (options.redis.twemproxy) {
           return -1;
         }
-        client.dbsize(setKeylen);
+        client.dbSize().then(function(size) {
+          keylen = size;
+        }).catch(function(err) {
+          debug('dbsize error ' + err);
+        });
         return keylen;
       }
     };
@@ -115,11 +143,3 @@ var redisStore = {
 };
 
 module.exports = redisStore;
-
-(function() {
-  if (require.main === module) {
-    var store = redisStore.init({ redis: { port: 6379 }, id: 0 });
-    console.log('created cache ' + store);
-    store.keycount(console.log);
-  }
-}());

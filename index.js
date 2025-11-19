@@ -2,7 +2,6 @@
 /*jslint undef: true */
 
 var lru = require('./lru');
-var LRU = require('lru-cache');
 var sigmund = require('sigmund');
 var log = require('debug')('obcache');
 var util = require('util');
@@ -81,9 +80,9 @@ var cache = {
     * be skipped for key generation
     *
     **/
-    this.wrap = function (fn,thisobj,skipArgs) {
+    this.wrap = function (fn, thisobj, skipArgs) {
       var stats = this.stats;
-      var fname = (fn.name || '_' ) + anonFnId++;
+      var fname = (fn.name || '_') + anonFnId++;
       var cachedfunc;
       var pending = this.pending;
 
@@ -92,12 +91,26 @@ var cache = {
       cachedfunc = function() {
         var self = thisobj || this;
         var args = Array.prototype.slice.apply(arguments);
-        var callback = args.pop();
-        var key,data,keyArgs;
+        var lastArg = args[args.length - 1];
+        var callback;
+        var usePromise = typeof lastArg !== 'function';
+        var key, data, keyArgs;
 
-        if (typeof callback !== 'function') {
-          throw new Error('last argument to ' + fname + ' should be a function');
+        if (usePromise) {
+          // Promise mode - return a Promise
+          return new Promise(function(resolve, reject) {
+            args.push(function(err, result) {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            });
+            cachedfunc.apply(self, args);
+          });
         }
+
+        callback = args.pop();
 
         if (nextResetTime && (nextResetTime < Date.now())) {
           log('resetting cache ' + nextResetTime);

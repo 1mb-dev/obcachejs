@@ -1,62 +1,69 @@
 "use strict";
 
-var LRU = require('lru-cache');
+var LRUCache = require('lru-cache').LRUCache;
 
 var lru = {
 
   init: function(options) {
 
-    var lru,store;
+    var cache, store;
     var lruOptions = {};
 
     if (options.maxSize) {
-      lruOptions.length = function(v) {
+      lruOptions.sizeCalculation = function(v) {
         return JSON.stringify(v).length;
       };
-      lruOptions.max = options.maxSize;
+      lruOptions.maxSize = options.maxSize;
     } else {
-      lruOptions.max = options.max;
+      lruOptions.max = options.max || 1000;
     }
 
-    lruOptions.maxAge = options.maxAge;
-    lruOptions.dispose = options.dispose;
+    if (options.maxAge) {
+      lruOptions.ttl = options.maxAge;
+    }
 
-    lru = LRU(lruOptions);
+    if (options.dispose) {
+      lruOptions.dispose = options.dispose;
+    }
+
+    cache = new LRUCache(lruOptions);
 
     store = {
-      
-      lru: lru,
 
-      get : function(key,cb) {
-        var data = lru.get(key);
-        cb(null,data);
+      lru: cache,
+
+      get: function(key, cb) {
+        var data = cache.get(key);
+        cb(null, data);
       },
 
-      set: function(key,val,cb) {
-        lru.set(key,val);
+      set: function(key, val, cb) {
+        cache.set(key, val);
         if (cb) {
-          cb(null,val);
+          cb(null, val);
         }
       },
 
-      expire: function(key,cb) {
-        lru.del(key);
+      expire: function(key, cb) {
+        cache.delete(key);
         cb && cb(null);
       },
 
       reset: function() {
-        lru.reset();
+        cache.clear();
       },
 
       size: function() {
-        return lru.length
+        return cache.size;
       },
 
       keycount: function() {
-        return lru.itemCount;
+        return cache.size;
       },
 
-      values: lru.values.bind(lru)
+      values: function() {
+        return Array.from(cache.values());
+      }
     };
 
     return store;

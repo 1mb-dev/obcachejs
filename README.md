@@ -1,82 +1,133 @@
-ObCache
-=======
+# ObCache
 
-ObCache is an Object caching module for node.js. Objects are cached in memory, via a backing store.
+Object caching module for Node.js. Wraps async functions and caches their results with automatic key generation.
 
-Currently 2 stores are supported.
+## Features
 
- - Memory
- - Redis
+- LRU in-memory cache with TTL
+- Optional Redis persistence
+- Request deduplication (prevents thundering herd)
+- Promise and callback support
+- TypeScript definitions included
 
-Use Redis for persistent caches.
+## Installation
 
-Usage
-------
-
-```
-var obcache = require('obcache');
-
-// create a cache with max 10000 items and a TTL of 300 milliseconds
-var cache = new obcache.Create({ max: 10000, maxAge: 300 });
-
+```bash
+npm install obcache
 ```
 
-The max parameter above indicates the maximum keys that can be cached. If your values are variable sized and you want a finer control
-on cache memory usage, specify maxSize instead. If no max is specified, max keys supported are Inifinity, and size
-of the cache will be governed by maxAge alone.
+Requires Node.js 18+
 
-Then wrap your original function like this
+## Usage
 
+### Basic (async/await)
+
+```javascript
+const obcache = require('obcache');
+
+const cache = new obcache.Create({ max: 1000, maxAge: 60000 });
+
+// Wrap an async function
+async function fetchUser(id) {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();
+}
+
+const cachedFetch = cache.wrap(async (id, callback) => {
+  try {
+    const user = await fetchUser(id);
+    callback(null, user);
+  } catch (err) {
+    callback(err);
+  }
+});
+
+// Use with async/await
+const user = await cachedFetch(123);
+
+// Or with callbacks
+cachedFetch(123, (err, user) => {
+  console.log(user);
+});
 ```
-var wrapper = cache.wrap(original);
-```
 
-Now call the wrapper as you would call the original
+### With Redis
 
-```
-wrapper(arg1,arg2...argn,function(err,res) {
-  if (!err) {
-     // do something with res
+```javascript
+const cache = new obcache.Create({
+  max: 10000,
+  maxAge: 300000,
+  id: 1, // required for Redis
+  redis: {
+    host: 'localhost',
+    port: 6379
   }
 });
 ```
 
-API
----
+## API
 
-### obcache.Create
-Creates a new cache and returns it
+### obcache.Create(options)
 
-### cache.wrap 
-Wraps a given function and returns a cached version of it.
-Functions to be wrapped must have a callback function as the last argument. The callback function is expected to recieve 2 arguments - err and data. data gets stored in the cache.
-Sometimes, you may want to use a different value of this inside the caller function. cache.wrap has an optional second argument which becomes the this object when calling the original function.
+Creates a new cache instance.
 
-The first n-1 arguments are used to create the key. Subsequently, when the wrapped function is called with the same n arguments, it would lookup the key in LRU, and if found, call the callback with the associated data. It is expected that the callback will never modified the returned data, as any modifications of the original will change the object in cache. 
+**Options:**
+- `max` - Maximum number of keys (default: 1000)
+- `maxSize` - Maximum cache size in bytes (alternative to max)
+- `maxAge` - TTL in milliseconds
+- `queueEnabled` - Enable request deduplication
+- `redis` - Redis configuration `{ host, port, url, database }`
+- `id` - Cache ID (required for Redis)
 
-### cache.warmup
-Warmup the cache.
+### cache.wrap(fn, [thisobj], [skipArgs])
 
-The first argument is the cache function, and the last argument is the value. 
+Wraps a function with caching. Returns a cached version that:
+- Returns a Promise when called without callback
+- Uses callback when provided as last argument
 
-E.g.
+```javascript
+const cached = cache.wrap(myFunction);
 
-```
-var myfunc = cache.wrap(function(q, r, cb) {
-  ...
-});
+// Promise style
+const result = await cached(arg1, arg2);
 
-cache.warmup(myfunc, q, r, 123);
-
-```
-
-### cache.invalidate
-
-Invalidate the cache contents. Subsequent calls will trigger a new fetch.
-```
-cache.invalidate(myfunc,q,r);
+// Callback style
+cached(arg1, arg2, (err, result) => {});
 ```
 
-### cache.debug
+**skipArgs** - Array of argument indices to exclude from cache key generation.
 
-The debug interface exposes 2 functions, register and view. register is used to register a cache for debugging. view is a connect middleware that can be used to view all the registered caches and their data/keys.
+### cache.warmup(fn, ...args, value)
+
+Pre-populate cache with a known value.
+
+```javascript
+cache.warmup(cachedFetch, 123, { id: 123, name: 'cached' });
+```
+
+### cache.invalidate(fn, ...args)
+
+Remove cached value for given arguments.
+
+```javascript
+cache.invalidate(cachedFetch, 123);
+```
+
+### cache.stats
+
+Object with cache statistics: `{ hit, miss, reset, pending }`
+
+### obcache.debug
+
+Debug interface for cache inspection.
+
+```javascript
+obcache.debug.register(cache, 'myCache');
+
+// Express middleware
+app.get('/cache-debug', obcache.debug.view);
+```
+
+## License
+
+BSD-3-Clause
