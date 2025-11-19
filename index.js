@@ -1,5 +1,7 @@
 'use strict';
 
+// sigmund produces consistent hashes for complex nested objects,
+// used here to generate cache keys from function name + arguments
 var sigmund = require('sigmund');
 var log = require('debug')('obcachejs');
 var util = require('util');

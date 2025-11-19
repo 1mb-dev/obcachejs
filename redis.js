@@ -40,6 +40,21 @@ var redisStore = {
     client = redis.createClient(clientOptions);
 
     var connected = false;
+    var pendingOps = [];
+
+    function flushPendingOps() {
+      var ops = pendingOps;
+      pendingOps = [];
+      ops.forEach(function(op) { op(); });
+    }
+
+    function whenReady(op) {
+      if (connected) {
+        op();
+      } else {
+        pendingOps.push(op);
+      }
+    }
 
     client.on('error', function(err) {
       debug('redis error ' + err);
@@ -49,6 +64,7 @@ var redisStore = {
     client.connect().then(function() {
       debug('redis connected');
       connected = true;
+      flushPendingOps();
       if (!options.redis.twemproxy) {
         client.dbSize().then(function(size) {
           keylen = size;
@@ -59,6 +75,10 @@ var redisStore = {
     }).catch(function(err) {
       debug('redis connect error ' + err);
       connected = false;
+      // Fail pending operations
+      var ops = pendingOps;
+      pendingOps = [];
+      ops.forEach(function(op) { op(err); });
     });
 
     if (options.redis.twemproxy) {
@@ -72,52 +92,63 @@ var redisStore = {
       client: client,
 
       get: function(key, cb) {
-        key = prefix + key;
-        client.get(key).then(function(data) {
-          var result;
-          if (!data) {
-            return cb(null);
-          }
-          try {
-            result = JSON.parse(data);
-          } catch (e) {
-            return cb(e);
-          }
-          return cb(null, result);
-        }).catch(function(err) {
-          cb(err);
+        var k = prefix + key;
+        whenReady(function(err) {
+          if (err) return cb(err);
+          client.get(k).then(function(data) {
+            var result;
+            if (!data) {
+              return cb(null);
+            }
+            try {
+              result = JSON.parse(data);
+            } catch (e) {
+              return cb(e);
+            }
+            return cb(null, result);
+          }).catch(function(err) {
+            cb(err);
+          });
         });
       },
 
       set: function(key, val, cb) {
-        key = prefix + key;
+        var k = prefix + key;
+        var ttl = Math.floor(this.maxAge / 1000);
+        var obj;
         try {
-          var ttl = Math.floor(this.maxAge / 1000);
-          var obj = JSON.stringify(val);
-
-          debug('setting key ' + key + ' in redis with ttl ' + ttl);
-          client.setEx(key, ttl, obj).then(function() {
-            if (cb) {
-              cb(null, val);
-            }
-          }).catch(function(err) {
-            if (cb) {
-              cb(err);
-            }
-          });
+          obj = JSON.stringify(val);
         } catch (err) {
-          if (cb) {
-            cb(err);
-          }
+          if (cb) cb(err);
+          return;
         }
+
+        whenReady(function(err) {
+          if (err) {
+            if (cb) cb(err);
+            return;
+          }
+          debug('setting key ' + k + ' in redis with ttl ' + ttl);
+          client.setEx(k, ttl, obj).then(function() {
+            if (cb) cb(null, val);
+          }).catch(function(err) {
+            if (cb) cb(err);
+          });
+        });
       },
 
       expire: function(key, cb) {
-        key = prefix + key;
-        client.expire(key, 0).then(function() {
-          cb && cb(null);
-        }).catch(function(err) {
-          cb && cb(err);
+        var k = prefix + key;
+        whenReady(function(err) {
+          if (err) {
+            cb && cb(err);
+            return;
+          }
+          client.expire(k, 0).then(function() {
+            cb && cb(null);
+          }).catch(function(err) {
+            cb && cb(err);
+          });
         });
       },
 

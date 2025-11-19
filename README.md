@@ -164,6 +164,12 @@ app.get('/debug/cache', obcache.debug.view);
 obcache.debug.log();
 ```
 
+**Security Warning:** The debug endpoint exposes cached data via `?detail=cachename` and allows cache flushing via POST with `?flush=cachename`. Never expose this endpoint publicly. Always protect it with authentication middleware:
+
+```javascript
+app.get('/debug/cache', requireAdmin, obcache.debug.view);
+```
+
 ## How It Works
 
 obcachejs generates cache keys by hashing the function name and serialized arguments using sigmund. When a wrapped function is called:
