@@ -28,6 +28,11 @@
     "type": "git",
     "url": "git://github.com/vnykmshr/obcache.git"
   },
+  "homepage": "https://github.com/vnykmshr/obcache#readme",
+  "bugs": {
+    "url": "https://github.com/vnykmshr/obcache/issues"
+  },
+  "private": true,
   "keywords": [
     "cache",
     "lru",
