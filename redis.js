@@ -46,7 +46,6 @@ var redisStore = {
       connected = false;
     });
 
-    // Connect to Redis
     client.connect().then(function() {
       debug('redis connected');
       connected = true;

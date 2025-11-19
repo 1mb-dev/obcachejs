@@ -34,11 +34,12 @@ var cache = {
   Error: CacheError,
 
   Create: function(options) {
+    options = options || {};
     var nextResetTime;
     var anonFnId = 0;
     var store;
 
-    if (options && options.redis) {
+    if (options.redis) {
       log('creating redis cache');
       store = require('./redis').init(options);
     } else {
@@ -49,7 +50,7 @@ var cache = {
     this.pending = options.queueEnabled ? {} : null;
     this.stats = { hit: 0, miss: 0, reset: 0, pending: 0 };
 
-    if (options && options.reset) {
+    if (options.reset) {
       nextResetTime = options.reset.firstReset || Date.now() + options.reset.interval;
     }
 
@@ -114,7 +115,7 @@ var cache = {
           if (pending) {
             v = pending[key];
             if (v === undefined) {
-              pending[key] = [log];
+              pending[key] = [];
               stats.pending++;
             } else {
               log('fetch pending, queuing %s', key);

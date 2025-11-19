@@ -30,6 +30,7 @@ declare module 'obcachejs' {
   export interface CachedFunction<T extends (...args: any[]) => any> {
     (...args: Parameters<T>): ReturnType<T>;
     cacheName: string;
+    skipArgs?: number[];
   }
 
   export interface Cache {
