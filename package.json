@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "mocha": "^11.0.0",
-    "eslint": "^9.0.0",
+    "eslint": "^10.0.0",
     "@eslint/js": "^9.0.0"
   },
   "repository": {
