@@ -5,3 +5,5 @@ on: [push, pull_request]
 jobs:
   ci:
     uses: 1mb-dev/.github/.github/workflows/ci-node.yml@main
+    with:
+      run-build: false
