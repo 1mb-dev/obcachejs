@@ -3,7 +3,7 @@
 ## Development
 
 ```bash
-git clone https://github.com/vnykmshr/obcachejs.git
+git clone https://github.com/1mb-dev/obcachejs.git
 cd obcachejs
 npm install
 ```

@@ -266,4 +266,4 @@ For applications that fit this model, obcachejs reduces caching boilerplate whil
 
 ---
 
-*Repository: [github.com/vnykmshr/obcachejs](https://github.com/vnykmshr/obcachejs)*
+*Repository: [github.com/1mb-dev/obcachejs](https://github.com/1mb-dev/obcachejs)*

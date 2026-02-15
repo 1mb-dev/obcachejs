@@ -29,11 +29,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/vnykmshr/obcachejs.git"
+    "url": "git+https://github.com/1mb-dev/obcachejs.git"
   },
-  "homepage": "https://github.com/vnykmshr/obcachejs#readme",
+  "homepage": "https://github.com/1mb-dev/obcachejs#readme",
   "bugs": {
-    "url": "https://github.com/vnykmshr/obcachejs/issues"
+    "url": "https://github.com/1mb-dev/obcachejs/issues"
   },
   "keywords": [
     "cache",

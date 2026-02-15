@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded `debug` to v4
 - Redis `reset()` now returns a Promise
 - LRU `expire()` now calls callback asynchronously for consistency
-- Updated repository URLs to github.com/vnykmshr/obcachejs
+- Updated repository URLs to github.com/1mb-dev/obcachejs
 
 ### Fixed
 - Race condition in Redis `keycount()` returning stale data
