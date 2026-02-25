@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/obcachejs.svg)](https://www.npmjs.com/package/obcachejs)
 [![CI](https://github.com/1mb-dev/obcachejs/actions/workflows/test.yml/badge.svg)](https://github.com/1mb-dev/obcachejs/actions/workflows/test.yml)
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/node/v/obcachejs.svg)](https://nodejs.org)
 
 Object caching for Node.js. Wraps async functions and caches results with automatic key generation.
@@ -205,4 +205,4 @@ Report security issues via GitHub issues with `[SECURITY]` prefix.
 
 ## License
 
-BSD-3-Clause
+MIT

@@ -12,7 +12,7 @@
   "contributors": [
     "Qasim Zaidi"
   ],
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "engines": {
     "node": ">=18"
   },
