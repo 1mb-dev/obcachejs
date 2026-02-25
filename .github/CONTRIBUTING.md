@@ -26,7 +26,7 @@ npm run lint
 2. Create a feature branch
 3. Make changes with tests
 4. Run `npm test` and `npm run lint`
-5. Submit PR against `master`
+5. Submit PR against `main`
 
 Keep changes focused and minimal. One feature or fix per PR.
 
