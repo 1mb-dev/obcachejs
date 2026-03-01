@@ -1,7 +1,7 @@
 # obcachejs
 
 [![npm version](https://img.shields.io/npm/v/obcachejs.svg)](https://www.npmjs.com/package/obcachejs)
-[![CI](https://github.com/1mb-dev/obcachejs/actions/workflows/test.yml/badge.svg)](https://github.com/1mb-dev/obcachejs/actions/workflows/test.yml)
+[![CI](https://github.com/1mb-dev/obcachejs/actions/workflows/ci.yml/badge.svg)](https://github.com/1mb-dev/obcachejs/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/node/v/obcachejs.svg)](https://nodejs.org)
 
