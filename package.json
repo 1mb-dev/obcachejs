@@ -19,7 +19,7 @@
   "dependencies": {
     "debug": "^4.3.4",
     "lru-cache": "^11.0.0",
-    "redis": "^5.0.0",
+    "redis": "^6.0.0",
     "sigmund": "^1.0.1"
   },
   "devDependencies": {
