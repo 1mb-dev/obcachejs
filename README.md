@@ -21,7 +21,7 @@ Object caching for Node.js. Wraps async functions and caches results with automa
 npm install obcachejs
 ```
 
-Requires Node.js 18+
+Requires Node.js 22+
 
 ## Quick Start
 
